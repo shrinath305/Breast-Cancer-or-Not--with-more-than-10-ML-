@@ -1,0 +1,545 @@
+---
+
+#  Binary Classification of Breast Cancer & Visualization for Doctor
+
+#Data Importing & Cleaning & Inspecting
+
+#Import dataset
+
+data <-  read.csv('C:/Users/patel/Desktop/Main folder/Brest cancer/data.csv')
+head(data)
+
+
+#Remove NULL Data
+
+data$X <-  NULL
+
+
+
+#Reshape the datasets
+
+data <- data[,-1]
+data$diagnosis <-  as.factor(ifelse(data$diagnosis =='B',"Benign","Malignant")) 
+
+
+#Inspect the datasets
+
+summary(data)
+
+
+str(data) 
+
+
+
+head(data)
+
+
+#Analyze the Correlation between variables
+#Correlation between each variables
+
+#mean
+
+library(PerformanceAnalytics)
+chart.Correlation(data[,c(2:11)],histogram = T, col="blue",main ="Cancer Mean")
+
+
+#se
+
+chart.Correlation(data[,c(12:21)], method="pearson",hist.col = "#1fbbfa",main="Cancer SE")
+
+
+#worst
+
+chart.Correlation(data[,c(22:31)], method="pearson",hist.col = "#1fbbfa",main="Cancer worst")
+
+
+#See the relation between each variables (diagnosis included)
+
+#mean
+
+library(ggplot2)
+library(GGally)
+ggpairs(data[,c(2:11,1)], aes(color=diagnosis, alpha=0.75), lower=list(continuous="smooth"))+ theme_bw()+
+  labs(title="Cancer Mean")+
+  theme(plot.title=element_text(face='bold',color='black',hjust=0.5,size=12))
+
+
+#se
+
+ggpairs(data[,c(12:21,1)], aes(color=diagnosis, alpha=0.75), lower=list(continuous="smooth"))+ theme_bw()+
+  labs(title="Cancer SE")+
+  theme(plot.title=element_text(face='bold',color='black',hjust=0.5,size=12))
+
+#worst
+
+ggpairs(data[,c(22:31,1)], aes(color=diagnosis, alpha=0.75), lower=list(continuous="smooth"))+ theme_bw()+
+  labs(title="Cancer Worst")+
+  theme(plot.title=element_text(face='bold',color='black',hjust=0.5,size=12))
+
+
+#Principal Component Analysis (PCA)
+
+#PCA uses standardized data so that it can avoid data distortion caused by scale difference.
+
+
+
+library(factoextra)
+data_pca <- transform(data)
+
+
+Summary
+
+#all
+
+all_pca <-  prcomp(data_pca[,-1],cor=TRUE,scale= TRUE)
+summary(all_pca)
+
+
+#mean
+
+mean_pca <-  prcomp(data_pca[,c(2:11)], cor = TRUE , scale = TRUE)
+summary(mean_pca)
+
+
+
+#se
+
+se_pca <-  prcomp(data_pca[,c(12:21)], cor = TRUE , scale = TRUE)
+summary(se_pca)
+
+
+#worst
+
+worst_pca <- prcomp(data_pca[,c(22:31)], cor = TRUE , scale = TRUE)
+summary(worst_pca)
+
+
+Screeplot
+
+#all
+
+fviz_eig(all_pca, addlabels = T , ylim = c(0,60), geom = c("bar","line"),
+         barfill = 'Red', barcolor = "grey", linecolor = 'black', ncp=10)+
+  labs(title = 'Cancer All variance -PCA',x ='Principle Components', y="% of variance")
+
+
+#mean
+
+fviz_eig(mean_pca, addlabels = T , ylim = c(0,60), geom = c("bar","line"),
+         barfill = 'Pink', barcolor = "grey", linecolor = 'black', ncp=10)+
+  labs(title = 'Cancer All variance -PCA',x ='Principle Components', y="% of variance")
+
+
+#se
+
+fviz_eig(se_pca, addlabels = T , ylim = c(0,60), geom = c("bar","line"),
+         barfill = 'Pink', barcolor = "grey", linecolor = 'black', ncp=10)+
+  labs(title = 'Cancer All variance -PCA',x ='Principle Components', y="% of variance")
+
+
+#worst
+
+fviz_eig(worst_pca, addlabels = T , ylim = c(0,60), geom = c("bar","line"),
+         barfill = 'Pink', barcolor = "grey", linecolor = 'black', ncp=10)+
+  labs(title = 'Cancer All variance -PCA',x ='Principle Components', y="% of variance")
+
+
+#Get PCA Variables
+
+#all
+
+all_var <-  get_pca_var(all_pca)
+all_var
+
+
+#Quality of representation of PCA
+#Correlation between variables and PCA
+
+
+library("corrplot")
+corrplot(all_var$cos2, is.corr=FALSE)
+
+
+#Contributions of variables to PCA
+#To highlight the most contributing variables for each components
+
+
+corrplot(all_var$contrib, is.corr=FALSE)  
+
+
+#Contributions of variables to PC1 & PC2
+
+library(gridExtra)
+p1 <- fviz_contrib(all_pca, choice="var", axes=1, fill="pink", color="grey", top=10)
+p2 <- fviz_contrib(all_pca, choice="var", axes=2, fill="skyblue", color="grey", top=10)
+grid.arrange(p1,p2,ncol=2)
+
+
+#mean
+
+mean_var <- get_pca_var(mean_pca)
+mean_var
+
+#Quality of representation of PCA
+#Correlation between variables and PCA
+
+
+
+corrplot(mean_var$cos2, is.corr=FALSE)
+
+
+#Contributions of variables to PCA
+#To highlight the most contributing variables for each components
+
+corrplot(mean_var$contrib, is.corr=FALSE)  
+
+
+#Contributions of variables to PC1 & PC2
+
+p1 <- fviz_contrib(mean_pca, choice="var", axes=1, fill="pink", color="grey", top=10)
+p2 <- fviz_contrib(mean_pca, choice="var", axes=2, fill="skyblue", color="grey", top=10)
+grid.arrange(p1,p2,ncol=2)
+
+
+#se
+
+se_var <- get_pca_var(se_pca)
+se_var
+
+
+#Quality of representation of PCA
+#Correlation between variables and PCA
+
+
+corrplot(se_var$cos2, is.corr=FALSE)
+
+
+#Contributions of variables to PCA
+#To highlight the most contributing variables for each components
+
+
+corrplot(se_var$contrib, is.corr=FALSE)
+
+
+#Contributions of variables to PC1 & PC2
+
+p1 <- fviz_contrib(se_pca, choice="var", axes=1, fill="pink", color="grey", top=10)
+p2 <- fviz_contrib(se_pca, choice="var", axes=2, fill="skyblue", color="grey", top=10)
+grid.arrange(p1,p2,ncol=2)
+
+
+#worst
+
+corrplot(worst_var$cos2, is.corr=FALSE)
+
+
+#Quality of representation of PCA
+#Correlation between variables and PCA
+
+
+worst_var <- get_pca_var(worst_pca)
+worst_var
+
+
+#Contributions of variables to PCA
+#To highlight the most contributing variables for each components
+
+corrplot(worst_var$contrib, is.corr=FALSE)
+
+
+
+#Contributions of variables to PC1 & PC2
+
+p1 <- fviz_contrib(worst_pca, choice="var", axes=1, fill="pink", color="grey", top=10)
+p2 <- fviz_contrib(worst_pca, choice="var", axes=2, fill="skyblue", color="grey", top=10)
+grid.arrange(p1,p2,ncol=2)
+
+
+
+#See the plot - color variables by groups
+#value centers : put the optimal principal component value that we chosen above.
+
+#all
+
+set.seed(100)
+res.all <-  kmeans(all_var$coord , centers = 6, nstart = 25)
+grp <- as.factor(res.all$cluster)
+
+fviz_pca_var(all_pca,col.var = grp, palette = "jco",legend.title = "Cluster")
+
+
+#mean
+
+res.mean <-  kmeans(mean_var$coord , centers = 3, nstart = 25)
+grp <- as.factor(res.mean$cluster)
+
+fviz_pca_var(mean_pca,col.var = grp, palette = "jco",legend.title = "Cluster")
+
+
+#se
+
+res.se <-  kmeans(se_var$coord , centers = 4, nstart = 25)
+grp <- as.factor(res.se$cluster)
+
+fviz_pca_var(se_pca,col.var = grp, palette = "jco",legend.title = "Cluster")
+
+
+#worst
+
+res.worst <-  kmeans(worst_var$coord , centers = 3, nstart = 25)
+grp <- as.factor(res.worst$cluster)
+
+fviz_pca_var(worst_pca,col.var = grp, palette = "jco",legend.title = "Cluster")
+
+
+#See the Biplot
+
+#all
+
+fviz_pca_biplot(all_pca,col.ind = data$diagnosis,col = "black",
+                palette = "jco",geom = "point",repel = T,
+                legend.title = "Diagnosis",addEllipses = T)
+
+
+#mean
+
+
+fviz_pca_biplot(mean_pca,col.ind = data$diagnosis,col = "black",
+                palette = "jco",geom = "point",repel = T,
+                legend.title = "Diagnosis",addEllipses = T)
+
+#se
+
+fviz_pca_biplot(se_pca,col.ind = data$diagnosis,col = "black",
+                palette = "jco",geom = "point",repel = T,
+                legend.title = "Diagnosis",addEllipses = T)
+
+
+#worst
+
+fviz_pca_biplot(worst_pca,col.ind = data$diagnosis,col = "black",
+                palette = "jco",geom = "point",repel = T,
+                legend.title = "Diagnosis",addEllipses = T)
+
+
+
+#Apply every ML methods and compare each other and choose best fits
+
+#Make test & train dataset for testing classification ML methods
+#Shuffle the wbcd data(100%) & Make train dataset(70%), test dataset(30%)
+
+nrows <- NROW(data)
+set.seed(100)
+index <- sample(1:nrows,0.7*nrows)
+train <- data[index,]                   ## 398 test data (70%)
+test <- data[-index,]
+
+#Check the proportion of diagnosis (Benign / Malignant)
+
+library(rpart)
+library(caret)
+learn_rp <- rpart(diagnosis~.,data = train, control = rpart.control(minsplit = 2))
+pre_ro <- predict(learn_rp,test[,-1],type = "class")
+cm_rp <- confusionMatrix(pre_ro, test$diagnosis)
+cm_rp
+
+
+#Apply every ML methods to data
+#rpart
+
+
+library(rpart)
+library(caret)
+learn_rp <- rpart(diagnosis~.,data = train, control = rpart.control(minsplit = 2))
+pre_ro <- predict(learn_rp,test[,-1],type = "class")
+cm_rp <- confusionMatrix(pre_ro, test$diagnosis)
+cm_rp
+
+
+#prune
+
+learn_pru <- prune(learn_rp,cp =learn_rp$cptable[which.min(learn_rp$cptable[,"xerror"]),"CP"])
+pre_pru <- predict(learn_pru,test[,-1],type = "class")
+cm_pru <- confusionMatrix(pre_pru, test$diagnosis)
+cm_pru
+
+
+#OneR
+
+library("RWeka")
+learn_1r <- OneR(diagnosis~., data=train)
+pre_1r <- predict(learn_1r, test[,-1])
+cm_1r   <- confusionMatrix(pre_1r, test$diagnosis)
+cm_1r
+
+
+# JRip
+
+learn_jrip <- JRip(diagnosis ~ ., data=train)
+pre_jrip <- predict(learn_jrip, test[,-1])
+cm_jrip <- confusionMatrix(pre_jrip, test$diagnosis)        
+cm_jrip
+
+
+#naivebayes
+
+library(e1071)
+learn_nb <- naiveBayes(train[,-1], train$diagnosis)
+pre_nb <- predict(learn_nb, test[,-1])
+cm_nb <- confusionMatrix(pre_nb, test$diagnosis)        
+cm_nb
+
+
+#randomforest
+
+library(randomForest)
+learn_rf <- randomForest(diagnosis~.,data=train,ntree=500,proximity=T,importance=T)
+pre_rf <- predict(learn_rf,test[,-1])
+cm_rf <- confusionMatrix(pre_rf,test$diagnosis)
+cm_rf
+
+
+#Ctree
+
+library(party)
+learn_ct <- ctree(diagnosis~., data=train, controls=ctree_control(maxdepth=2))
+pre_ct   <- predict(learn_ct, test[,-1])
+cm_ct    <- confusionMatrix(pre_ct, test$diagnosis)
+cm_ct
+
+
+#K-nn tune
+
+library(class)
+
+acc_test <- numeric() 
+
+for(i in 1:30){
+  predict <- knn(train=train[,-1], test=test[,-1], cl=train[,1], k=i, prob=T)
+  acc_test <- c(acc_test,mean(predict==test[,1]))
+}
+
+acc <- data.frame(k= seq(1,30), cnt = acc_test)
+
+opt_k <- subset(acc, cnt==max(cnt))[1,]
+sub <- paste("Optimal number of k is", opt_k$k, "(accuracy :", opt_k$cnt,") in KNN")
+
+library(highcharter)
+hchart(acc, 'line', hcaes(k, cnt)) %>%
+  hc_title(text = "Accuracy With Varying K (KNN)") %>%
+  hc_subtitle(text = sub) %>%
+  hc_add_theme(hc_theme_google()) %>%
+  hc_xAxis(title = list(text = "Number of Neighbors(k)")) %>%
+  hc_yAxis(title = list(text = "Accuracy"))
+
+
+#GBM
+
+ibrary(gbm)
+test_gbm <- gbm(diagnosis~., data=train, distribution="gaussian",n.trees = 10000,
+                shrinkage = 0.01, interaction.depth = 4, bag.fraction=0.5, 
+                train.fraction=0.5,n.minobsinnode=10,cv.folds=3,keep.data=TRUE,verbose=FALSE,n.cores=1)
+best.iter <- gbm.perf(test_gbm, method="cv",plot.it=FALSE)
+fitControl = trainControl(method="cv", number=5, returnResamp="all")
+learn_gbm = train(diagnosis~., data=train, method="gbm", distribution="bernoulli",
+                  trControl=fitControl, verbose=F, tuneGrid=data.frame(.n.trees=best.iter, 
+                                                                       .shrinkage=0.01, .interaction.depth=1,
+                                                                       .n.minobsinnode=1))
+pre_gbm <- predict(learn_gbm, test[,-1])
+cm_gbm <- confusionMatrix(pre_gbm, test$diagnosis)
+cm_gbm
+
+
+
+#adaBoost
+
+library(rpart)
+library(ada)
+control <- rpart.control(cp = -1, maxdepth = 14,maxcompete = 1,xval = 0)
+learn_ada <- ada(diagnosis~., data = train, test.x = train[,-1], test.y = train[,1], type = "gentle", control = control, iter = 70)
+pre_ada <- predict(learn_ada, test[,-1])
+cm_ada <- confusionMatrix(pre_ada, test$diagnosis)
+cm_ada
+
+
+
+#SVm
+
+learn_svm <- svm(diagnosis~., data=train)
+pre_svm <- predict(learn_svm, test[,-1])
+cm_svm <- confusionMatrix(pre_svm, test$diagnosis)
+cm_svm
+
+
+#SVM- tune
+{r }
+gamma <- seq(0,0.1,0.005)
+cost <- 2^(0:5)
+parms <- expand.grid(cost=cost, gamma=gamma)    ## 231
+
+acc_test <- numeric()
+accuracy1 <- NULL; accuracy2 <- NULL
+
+for(i in 1:NROW(parms)){        
+  learn_svm <- svm(diagnosis~., data=train, gamma=parms$gamma[i], cost=parms$cost[i])
+  pre_svm <- predict(learn_svm, test[,-1])
+  accuracy1 <- confusionMatrix(pre_svm, test$diagnosis)
+  accuracy2[i] <- accuracy1$overall[1]
+}
+
+acc <- data.frame(p= seq(1,NROW(parms)), cnt = accuracy2)
+
+opt_p <- subset(acc, cnt==max(cnt))[1,]
+sub <- paste("Optimal number of parameter is", opt_p$p, "(accuracy :", opt_p$cnt,") in SVM")
+
+library(highcharter)
+hchart(acc, 'line', hcaes(p, cnt)) %>%
+  hc_title(text = "Accuracy With Varying Parameters (SVM)") %>%
+  hc_subtitle(text = sub) %>%
+  hc_add_theme(hc_theme_google()) %>%
+  hc_xAxis(title = list(text = "Number of Parameters")) %>%
+  hc_yAxis(title = list(text = "Accuracy"))
+
+
+
+learn_imp_svm <- svm(diagnosis~., data=train, cost=parms$cost[opt_p$p], gamma=parms$gamma[opt_p$p])
+pre_imp_svm <- predict(learn_imp_svm, test[,-1])
+cm_imp_svm <- confusionMatrix(pre_imp_svm, test$diagnosis)
+cm_imp_svm
+
+#Visualize to compare the accuracy of all methods
+
+col <- c("#ed3b3b", "#0099ff")
+par(mfrow=c(3,5))
+fourfoldplot(cm_c50$table, color = col, conf.level = 0, margin = 1, 
+             main=paste("C5.0 (",round(cm_c50$overall[1]*100),"%)",sep=""))
+fourfoldplot(cm_imp_c50$table, color = col, conf.level = 0, margin = 1, 
+             main=paste("Tune C5.0 (",round(cm_imp_c50$overall[1]*100),"%)",sep=""))
+fourfoldplot(cm_rp$table, color = col, conf.level = 0, margin = 1,
+             main=paste("RPart (",round(cm_rp$overall[1]*100),"%)",sep=""))
+fourfoldplot(cm_pru$table, color = col, conf.level = 0, margin = 1,
+             main=paste("Prune (",round(cm_pru$overall[1]*100),"%)",sep=""))
+fourfoldplot(cm_1r$table, color = col, conf.level = 0, margin = 1, 
+             main=paste("OneR (",round(cm_1r$overall[1]*100),"%)",sep=""))
+fourfoldplot(cm_jrip$table, color = col, conf.level = 0, margin = 1,
+             main=paste("JRip (",round(cm_jrip$overall[1]*100),"%)",sep=""))
+fourfoldplot(cm_ct$table, color = col, conf.level = 0, margin = 1, 
+             main=paste("CTree (",round(cm_ct$overall[1]*100),"%)",sep=""))
+fourfoldplot(cm_nb$table, color = col, conf.level = 0, margin = 1,
+             main=paste("NaiveBayes (",round(cm_nb$overall[1]*100),"%)",sep=""))
+fourfoldplot(cm_knn$table, color = col, conf.level = 0, margin = 1, 
+             main=paste("Tune KNN (",round(cm_knn$overall[1]*100),"%)",sep=""))
+fourfoldplot(cm_kmeans$table, color = col, conf.level = 0, margin = 1,
+             main=paste("KMeans (",round(cm_kmeans$overall[1]*100),"%)",sep=""))
+fourfoldplot(cm_rf$table, color = col, conf.level = 0, margin = 1, 
+             main=paste("RandomForest (",round(cm_rf$overall[1]*100),"%)",sep=""))
+fourfoldplot(cm_gbm$table, color = col, conf.level = 0, margin = 1, 
+             main=paste("GBM (",round(cm_gbm$overall[1]*100),"%)",sep=""))
+fourfoldplot(cm_ada$table, color = col, conf.level = 0, margin = 1, 
+             main=paste("AdaBoost (",round(cm_ada$overall[1]*100),"%)",sep=""))
+fourfoldplot(cm_svm$table, color = col, conf.level = 0, margin = 1, 
+             main=paste("SVM (",round(cm_svm$overall[1]*100),"%)",sep=""))
+fourfoldplot(cm_imp_svm$table, color = col, conf.level = 0, margin = 1, 
+             main=paste("Tune SVM (",round(cm_imp_svm$overall[1]*100),"%)",sep=""))
+
+
